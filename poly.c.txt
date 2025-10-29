@@ -1,70 +1,111 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
 
-#define MAX 10
+#define MAX 100
 
-struct Term {
-    int coeff; 
-    int exp;   
-};
+typedef struct {
+    int coeff;
+    int exp;
+} Term;
 
-int main() {
-    struct Term poly1[MAX], poly2[MAX], result[MAX];
-    int n1, n2, n3 = 0;
+Term poly1[MAX], poly2[MAX], result[MAX];
+int n1 = 0, n2 = 0, n3 = 0;
+
+// Function to parse polynomial expression like "3x^2+2x+1"
+void readPoly(Term poly[], int *n) {
+    char expStr[MAX], ch;
+    int i = 0, coeff, exp;
+
+    printf("Enter polynomial (example: 3x^3+2x^2+5x+6): ");
+    scanf("%s", expStr);
+
+    int pos = 0;
+    while (expStr[pos] != '\0') {
+        coeff = 0;
+        exp = 0;
+        int sign = 1;
+
+        if (expStr[pos] == '+') pos++;
+        else if (expStr[pos] == '-') {
+            sign = -1;
+            pos++;
+        }
+
+        while (isdigit(expStr[pos])) {
+            coeff = coeff * 10 + (expStr[pos] - '0');
+            pos++;
+        }
+
+        if (coeff == 0) coeff = 1;
+        coeff *= sign;
+
+        if (expStr[pos] == 'x') {
+            pos++;
+            if (expStr[pos] == '^') {
+                pos++;
+                while (isdigit(expStr[pos])) {
+                    exp = exp * 10 + (expStr[pos] - '0');
+                    pos++;
+                }
+            } else exp = 1;
+        } else exp = 0;
+
+        poly[*n].coeff = coeff;
+        poly[*n].exp = exp;
+        (*n)++;
+    }
+}
+
+// Function to add two polynomials
+void addPoly() {
     int i = 0, j = 0;
+    n3 = 0;
 
-    printf("Enter number of terms in first polynomial: ");
-    scanf("%d", &n1);
-    printf("Enter terms (coefficient exponent) in descending order of exponent:\n");
-    for (i = 0; i < n1; i++)
-        scanf("%d %d", &poly1[i].coeff, &poly1[i].exp);
-
-    printf("Enter number of terms in second polynomial: ");
-    scanf("%d", &n2);
-    printf("Enter terms (coefficient exponent) in descending order of exponent:\n");
-    for (i = 0; i < n2; i++)
-        scanf("%d %d", &poly2[i].coeff, &poly2[i].exp);
-
-    i = 0; 
-    j = 0;
     while (i < n1 && j < n2) {
         if (poly1[i].exp == poly2[j].exp) {
             result[n3].coeff = poly1[i].coeff + poly2[j].coeff;
             result[n3].exp = poly1[i].exp;
             i++; j++; n3++;
-        }
-        else if (poly1[i].exp > poly2[j].exp) {
-            result[n3].coeff = poly1[i].coeff;
-            result[n3].exp = poly1[i].exp;
-            i++; n3++;
-        }
-        else {
-            result[n3].coeff = poly2[j].coeff;
-            result[n3].exp = poly2[j].exp;
-            j++; n3++;
+        } else if (poly1[i].exp > poly2[j].exp) {
+            result[n3++] = poly1[i++];
+        } else {
+            result[n3++] = poly2[j++];
         }
     }
 
-    while (i < n1) {
-        result[n3].coeff = poly1[i].coeff;
-        result[n3].exp = poly1[i].exp;
-        i++; n3++;
-    }
+    while (i < n1) result[n3++] = poly1[i++];
+    while (j < n2) result[n3++] = poly2[j++];
+}
 
-    while (j < n2) {
-        result[n3].coeff = poly2[j].coeff;
-        result[n3].exp = poly2[j].exp;
-        j++; n3++;
-    }
-
-    printf("\nResultant Polynomial: ");
-    for (i = 0; i < n3; i++) {
-        if (result[i].coeff != 0) {
-            printf("%dX^%d", result[i].coeff, result[i].exp);
-            if (i != n3 - 1)
-                printf(" + ");
-        }
+// Function to display polynomial
+void displayPoly(Term poly[], int n) {
+    for (int i = 0; i < n; i++) {
+        if (poly[i].coeff == 0) continue;
+        printf("%dx^%d", poly[i].coeff, poly[i].exp);
+        if (i != n - 1) printf(" + ");
     }
     printf("\n");
+}
+
+int main() {
+    printf("Enter first polynomial:\n");
+    readPoly(poly1, &n1);
+
+    printf("\nEnter second polynomial:\n");
+    readPoly(poly2, &n2);
+
+    addPoly();
+
+    printf("\nFirst Polynomial: ");
+    displayPoly(poly1, n1);
+
+    printf("Second Polynomial: ");
+    displayPoly(poly2, n2);
+
+    printf("Sum of Polynomials: ");
+    displayPoly(result, n3);
 
     return 0;
 }
+
